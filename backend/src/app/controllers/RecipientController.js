@@ -1,8 +1,35 @@
+import { Op } from 'sequelize';
 import * as Yup from 'yup';
 
 import Recipient from '../models/Recipient';
 
 class RecipientController {
+  async index(req, res) {
+    const { q: search } = req.query;
+
+    /** retorna todos os entregadores */
+    const recipients = await Recipient.findAll({
+      attributes: [
+        'id',
+        'name',
+        'address',
+        'address_number',
+        'address_note',
+        'city',
+        'state',
+        'zipcode',
+      ],
+      /** pesquisa pelo nome do entregador */
+      where: search
+        ? {
+            name: { [Op.like]: `%${search}%` },
+          }
+        : {},
+    });
+
+    return res.json(recipients);
+  }
+
   async store(req, res) {
     /** esquema de validação dos campos */
     const schema = Yup.object().shape({
@@ -86,6 +113,15 @@ class RecipientController {
       state,
       zipcode,
     });
+  }
+
+  async delete(req, res) {
+    const { id } = req.params;
+
+    /** remove destinatário */
+    await Recipient.destroy({ where: { id } });
+
+    return res.json();
   }
 }
 

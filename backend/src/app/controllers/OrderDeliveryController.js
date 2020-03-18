@@ -1,9 +1,10 @@
 import Order from '../models/Order';
+
 import Recipient from '../models/Recipient';
 import Deliveryman from '../models/Deliveryman';
 import File from '../models/File';
 
-class DeliveryController {
+class OrderDeliveryController {
   async index(req, res) {
     const { id: deliveryman_id } = req.params;
 
@@ -46,4 +47,4 @@ class DeliveryController {
   }
 }
 
-export default new DeliveryController();
+export default new OrderDeliveryController();

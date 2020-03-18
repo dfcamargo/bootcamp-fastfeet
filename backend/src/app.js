@@ -1,4 +1,5 @@
 import express from 'express';
+import cors from 'cors';
 import { resolve } from 'path';
 
 import routes from './routes';
@@ -15,6 +16,7 @@ class App {
   }
 
   middleware() {
+    this.server.use(cors());
     /** corpo da requisição em formato json */
     this.server.use(express.json());
     this.server.use(
