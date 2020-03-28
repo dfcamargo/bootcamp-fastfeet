@@ -37,11 +37,13 @@ routes.use(authMiddleware);
 
 routes.post('/file', upload.single('file'), FileController.store);
 
+/** destinatário */
 routes.get('/recipients', RecipientController.index);
 routes.post('/recipients', RecipientController.store);
 routes.put('/recipients/:id', RecipientController.update);
 routes.delete('/recipients/:id', RecipientController.delete);
 
+/** entregador */
 routes.get('/deliverymen', DeliverymanController.index);
 routes.post('/deliverymen', DeliverymanController.store);
 routes.put('/deliverymen/:id', DeliverymanController.update);
@@ -49,17 +51,20 @@ routes.delete('/deliverymen/:id', DeliverymanController.delete);
 
 routes.get('/deliverymen/:id/deliveries', OrderDeliveryController.index);
 
+/** encomendas */
 routes.get('/deliveries', OrderController.index);
 routes.post('/deliveries', OrderController.store);
 routes.put('/deliveries/:id', OrderController.update);
 routes.delete('/deliveries/:id', OrderController.delete);
 
-routes.get('/problems', ProblemController.index);
-routes.delete('/problems/:id/cancel_delivery', ProblemController.delete);
-
 routes.get('/deliveries/:id/problems', ProblemDeliveryController.index);
+routes.post('/deliveries/:id/problems', ProblemDeliveryController.store);
 
 routes.put('/deliveries/:id/pickup', PickupController.update);
 routes.put('/deliveries/:id/delivered', DeliveredController.update);
+
+/** problemas */
+routes.get('/problems', ProblemController.index);
+routes.delete('/problems/:id/cancel_delivery', ProblemController.delete);
 
 export default routes;

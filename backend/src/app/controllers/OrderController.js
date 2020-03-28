@@ -6,6 +6,9 @@ import Recipient from '../models/Recipient';
 import Deliveryman from '../models/Deliveryman';
 import File from '../models/File';
 
+import Queue from '../../lib/Queue';
+import ConfirmationMail from '../jobs/ConfirmationMail';
+
 class OrderController {
   async index(req, res) {
     const { q: search } = req.query;
@@ -73,18 +76,43 @@ class OrderController {
       return res.status(400).json({ message: 'Validation fails' });
     }
 
-    /** retorna a encomenda criada */
-    const {
-      id,
-      recipient_id,
-      deliveryman_id,
-      product,
-      status,
-    } = await Order.create(req.body);
+    /** cria a encomenda */
+    const { id } = await Order.create(req.body);
 
-    // enviar e-mail
+    /** consulta a encomenda criada com seus detalhes */
+    const order = await Order.findOne({
+      where: { id },
+      attributes: ['id', 'product', 'status'],
+      include: [
+        {
+          model: Deliveryman,
+          as: 'deliveryman',
+          attributes: ['id', 'name', 'email'],
+        },
+        {
+          model: Recipient,
+          as: 'recipient',
+          attributes: [
+            'id',
+            'name',
+            'address',
+            'address_number',
+            'address_note',
+            'city',
+            'state',
+            'zipcode',
+            'full_address',
+          ],
+        },
+      ],
+    });
 
-    return res.json({ id, recipient_id, deliveryman_id, product, status });
+    /** envio de e-mail */
+    Queue.add(ConfirmationMail.key, {
+      order,
+    });
+
+    return res.json(order);
   }
 
   async update(req, res) {
@@ -92,7 +120,6 @@ class OrderController {
   }
 
   async delete(req, res) {
-    // enviar e-mail
     const { id } = req.params;
 
     /** remove ordem */

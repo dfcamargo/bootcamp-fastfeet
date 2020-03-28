@@ -1,28 +1,47 @@
-import DeliveryProblem from '../models/DeliveryProblem';
+import DeliveryProblem from '../Schema/DeliveryProblem';
+
 import Order from '../models/Order';
+import Deliveryman from '../models/Deliveryman';
+import Recipient from '../models/Recipient';
+
+import Queue from '../../lib/Queue';
+import CancellationMail from '../jobs/CancellationMail';
 
 class ProblemController {
+  /** lista todos os problemas de todas as encomendas */
   async index(req, res) {
-    const problems = await DeliveryProblem.findAll();
+    const problems = await DeliveryProblem.find().sort({ createdAt: 'desc' });
 
     return res.json(problems);
   }
 
   /** cancela a encomenda */
   async delete(req, res) {
-    const { id: problem_id } = req.params;
+    const { id } = req.params;
 
     /** verifica se existe o problema */
-    const problem = await DeliveryProblem.findByPk(problem_id);
+    const problem = await DeliveryProblem.findById(id);
 
     if (!problem) {
       return res.status(400).json({ message: 'Problem not found' });
     }
 
-    const { order_id } = problem;
-
     /** verifica se existe a ordem */
-    const order = await Order.findByPk(order_id);
+    const order = await Order.findOne({
+      where: { id: problem.order_id },
+      include: [
+        {
+          model: Deliveryman,
+          as: 'deliveryman',
+          attributes: ['name', 'email'],
+        },
+        {
+          model: Recipient,
+          as: 'recipient',
+          attributes: ['name'],
+        },
+      ],
+    });
 
     if (!order) {
       return res.status(400).json({ message: 'Order not found' });
@@ -34,24 +53,17 @@ class ProblemController {
     }
 
     /** atualiza a data de cancelamento da ordem */
-    const {
-      status,
-      recipient_id,
-      deliveryman_id,
-      product,
-      canceled_at,
-    } = await order.update({ canceled_at: new Date() });
+    order.canceled_at = new Date();
 
-    // enviar e-mail
+    await order.save();
 
-    return res.json({
-      order_id,
-      status,
-      recipient_id,
-      deliveryman_id,
-      product,
-      canceled_at,
+    /** envio de e-mail */
+    await Queue.add(CancellationMail.key, {
+      order,
+      description: problem.description,
     });
+
+    return res.json(order);
   }
 }
 
