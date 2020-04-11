@@ -10,19 +10,28 @@ class OrderDeliveryController {
 
     const request = await Order.findAll({
       where: { deliveryman_id, canceled_at: null, end_date: null },
-      attributes: ['id', 'product', 'start_date', 'end_date', 'canceled_at'],
+      attributes: [
+        'id',
+        'product',
+        'start_date',
+        'end_date',
+        'canceled_at',
+        'status',
+      ],
+      order: [['createdAt', 'DESC']],
       include: [
         {
           model: Recipient,
           as: 'recipient',
           attributes: [
             'name',
-            'zipcode',
             'address',
             'address_number',
             'address_note',
             'city',
             'state',
+            'zipcode',
+            'full_address',
           ],
         },
         {

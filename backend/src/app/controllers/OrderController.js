@@ -13,7 +13,7 @@ class OrderController {
   async index(req, res) {
     const { q: search } = req.query;
 
-    /** retorna todas as ordens */
+    /** pesquisa encomendas */
     const orders = await Order.findAll({
       attributes: [
         'id',
@@ -25,10 +25,10 @@ class OrderController {
       ],
       where: search
         ? {
+            /** filtro pelo nome do produto */
             product: { [Op.like]: `%${search}%` },
           }
         : {},
-      order: ['id'],
       include: [
         {
           model: Recipient,
@@ -61,6 +61,7 @@ class OrderController {
       ],
     });
 
+    /** retorna dados encontrados */
     return res.json(orders);
   }
 
@@ -112,6 +113,7 @@ class OrderController {
       order,
     });
 
+    /** retorna dados da encomenda criada */
     return res.json(order);
   }
 
@@ -122,9 +124,17 @@ class OrderController {
   async delete(req, res) {
     const { id } = req.params;
 
-    /** remove ordem */
-    await Order.destroy({ where: { id } });
+    /** verifica se a encomenda existe */
+    const order = await Order.findByPk(id);
 
+    if (!order) {
+      return res.status(400).json({ message: 'Order not found' });
+    }
+
+    /** remove encomenda */
+    await order.destroy();
+
+    /** retorna confirmação */
     return res.json();
   }
 }

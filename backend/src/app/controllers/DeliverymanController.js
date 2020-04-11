@@ -11,9 +11,9 @@ class DeliverymanController {
     /** retorna todos os entregadores */
     const deliverymen = await Deliveryman.findAll({
       attributes: ['id', 'name', 'email'],
-      /** pesquisa pelo nome do entregador */
       where: search
         ? {
+            /** filtro pelo nome do entregador */
             name: { [Op.like]: `%${search}%` },
           }
         : {},
@@ -97,10 +97,18 @@ class DeliverymanController {
   async delete(req, res) {
     const { id } = req.params;
 
-    /** remove entregador */
-    await Deliveryman.destroy({ where: { id } });
+    /** verifica se o entregador existe */
+    const deliveryman = await Deliveryman.findByPk(id);
 
-    res.json();
+    if (!deliveryman) {
+      return res.status(400).json({ message: 'Deliveryman not found' });
+    }
+
+    /** remove entregador */
+    await deliveryman.destroy();
+
+    /** retorna confirmação */
+    return res.json();
   }
 }
 

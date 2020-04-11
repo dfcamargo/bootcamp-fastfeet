@@ -6,7 +6,6 @@ class DeliveredController {
   async update(req, res) {
     /** esquema de validação dos campos */
     const schema = Yup.object().shape({
-      end_date: Yup.date().required(),
       signature_id: Yup.number().required(),
     });
 
@@ -14,11 +13,15 @@ class DeliveredController {
       return res.status(400).json({ message: 'Validation fails' });
     }
 
-    const { end_date, signature_id } = req.body;
+    const { signature_id } = req.body;
     const { id } = req.params;
 
-    /** verifica ordem */
+    /** data de entrega */
+    const end_date = new Date();
+
+    /** verifica se a encomenda existe */
     const order = await Order.findByPk(id);
+
     if (!order) {
       return res.status(400).json({ message: 'Order not found' });
     }

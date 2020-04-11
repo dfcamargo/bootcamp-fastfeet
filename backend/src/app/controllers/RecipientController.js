@@ -7,7 +7,7 @@ class RecipientController {
   async index(req, res) {
     const { q: search } = req.query;
 
-    /** retorna todos os entregadores */
+    /** pesquisa destinatário */
     const recipients = await Recipient.findAll({
       attributes: [
         'id',
@@ -19,7 +19,7 @@ class RecipientController {
         'state',
         'zipcode',
       ],
-      /** pesquisa pelo nome do entregador */
+      /** filtro pelo nome */
       where: search
         ? {
             name: { [Op.like]: `%${search}%` },
@@ -27,6 +27,7 @@ class RecipientController {
         : {},
     });
 
+    /** retornar todos os dados encontrados */
     return res.json(recipients);
   }
 
@@ -46,7 +47,7 @@ class RecipientController {
       return res.status(400).json({ message: 'Validation fails' });
     }
 
-    /** retorna informações do destinatário criado */
+    /** cria destinatário */
     const {
       name,
       address,
@@ -57,6 +58,7 @@ class RecipientController {
       zipcode,
     } = await Recipient.create(req.body);
 
+    /** retorna informações do destinatário criado */
     return res.status(201).json({
       name,
       address,
@@ -104,6 +106,7 @@ class RecipientController {
       zipcode,
     } = await recipient.update(req.body);
 
+    /** retorna destinatário atualizado */
     return res.json({
       name,
       address,
@@ -118,9 +121,17 @@ class RecipientController {
   async delete(req, res) {
     const { id } = req.params;
 
-    /** remove destinatário */
-    await Recipient.destroy({ where: { id } });
+    /** verifica se o destinatário existe */
+    const recipient = await Recipient.findByPk(id);
 
+    if (!recipient) {
+      return res.status(400).json({ message: 'Recipient not found' });
+    }
+
+    /** remove destinatário */
+    await recipient.destroy();
+
+    /** retorna confirmação */
     return res.json();
   }
 }

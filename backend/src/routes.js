@@ -8,6 +8,8 @@ import authMiddleware from './app/middlewares/auth';
 
 /** Rotas */
 import SessionController from './app/controllers/SessionController';
+import SessionDeliverymenController from './app/controllers/SessionDeliverymenController';
+
 import RecipientController from './app/controllers/RecipientController';
 import DeliverymanController from './app/controllers/DeliverymanController';
 import FileController from './app/controllers/FileController';
@@ -32,6 +34,18 @@ routes.get('/', (req, res) => {
 /** Rotas de autenticação */
 routes.post('/session', SessionController.store);
 
+/** MOBILE */
+routes.post('/deliverymen/session', SessionDeliverymenController.store);
+
+routes.get('/deliverymen/:id/deliveries', OrderDeliveryController.index);
+
+routes.get('/deliveries/:id/problems', ProblemDeliveryController.index);
+routes.post('/deliveries/:id/problems', ProblemDeliveryController.store);
+
+routes.put('/deliveries/:id/pickup', PickupController.update);
+
+routes.put('/deliveries/:id/delivered', DeliveredController.update);
+
 /** Rotas autenticadas */
 routes.use(authMiddleware);
 
@@ -49,19 +63,11 @@ routes.post('/deliverymen', DeliverymanController.store);
 routes.put('/deliverymen/:id', DeliverymanController.update);
 routes.delete('/deliverymen/:id', DeliverymanController.delete);
 
-routes.get('/deliverymen/:id/deliveries', OrderDeliveryController.index);
-
 /** encomendas */
 routes.get('/deliveries', OrderController.index);
 routes.post('/deliveries', OrderController.store);
 routes.put('/deliveries/:id', OrderController.update);
 routes.delete('/deliveries/:id', OrderController.delete);
-
-routes.get('/deliveries/:id/problems', ProblemDeliveryController.index);
-routes.post('/deliveries/:id/problems', ProblemDeliveryController.store);
-
-routes.put('/deliveries/:id/pickup', PickupController.update);
-routes.put('/deliveries/:id/delivered', DeliveredController.update);
 
 /** problemas */
 routes.get('/problems', ProblemController.index);
