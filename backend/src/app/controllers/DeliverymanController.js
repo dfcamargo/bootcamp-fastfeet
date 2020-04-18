@@ -5,28 +5,44 @@ import Deliveryman from '../models/Deliveryman';
 import File from '../models/File';
 
 class DeliverymanController {
+  /** consulta entregadores */
   async index(req, res) {
-    const { q: search } = req.query;
+    /** controle de paginação */
+    const { page = 1 } = req.query;
 
-    /** retorna todos os entregadores */
-    const deliverymen = await Deliveryman.findAll({
+    /** registros por página */
+    const per_page = 10;
+
+    /** monta instrução condicional caso seja informado por parâmetro */
+    const where = req.query.q
+      ? { name: { [Op.iLike]: `%${req.query.q}%` } }
+      : {};
+
+    /** consulta e retornar entregadores */
+    const { rows: deliverymen, count } = await Deliveryman.findAndCountAll({
       attributes: ['id', 'name', 'email'],
-      where: search
-        ? {
-            /** filtro pelo nome do entregador */
-            name: { [Op.like]: `%${search}%` },
-          }
-        : {},
+      order: ['id'],
+      where,
+      limit: per_page,
+      offset: (page - 1) * per_page,
       include: {
         model: File,
         as: 'avatar',
-        attributes: ['name', 'path', 'url'],
+        attributes: ['id', 'name', 'path', 'url'],
       },
     });
 
-    res.json(deliverymen);
+    return res.json({
+      deliverymen,
+
+      /** retorna controle de paginação */
+      per_page,
+      current_page: Number(page),
+      total_page: Math.ceil(count / per_page),
+    });
   }
 
+  /** adiciona novo entregar */
   async store(req, res) {
     /** esquema de validação dos campos */
     const schema = Yup.object().shape({
@@ -56,6 +72,7 @@ class DeliverymanController {
     return res.status(201).json({ id, name, email, avatar_id });
   }
 
+  /** altera entregador */
   async update(req, res) {
     const { id } = req.params;
 
@@ -68,8 +85,10 @@ class DeliverymanController {
 
     /** esquema de validação dos campos */
     const schema = Yup.object().shape({
-      name: Yup.string(),
-      email: Yup.string().email(),
+      name: Yup.string().required(),
+      email: Yup.string()
+        .email()
+        .required(),
     });
 
     if (!(await schema.isValid(req.body))) {
@@ -78,7 +97,7 @@ class DeliverymanController {
 
     const { email } = req.body;
 
-    /** se o campo e-mail for preecnhido, verifica se o e-mail não foi cadastrado */
+    /** se o campo e-mail for preenchido, verifica se o e-mail não foi cadastrado */
     if (email && email !== deliveryman.email) {
       const isRegistered = await Deliveryman.findOne({ where: { email } });
       if (isRegistered) {
@@ -88,12 +107,13 @@ class DeliverymanController {
       }
     }
 
-    /** retorna o entregador criado */
+    /** retorna o entregador atualizado */
     const { name, avatar_id } = await deliveryman.update(req.body);
 
     return res.json({ id, name, email, avatar_id });
   }
 
+  /** exclui entregador */
   async delete(req, res) {
     const { id } = req.params;
 
@@ -107,7 +127,6 @@ class DeliverymanController {
     /** remove entregador */
     await deliveryman.destroy();
 
-    /** retorna confirmação */
     return res.json();
   }
 }

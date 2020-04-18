@@ -3,7 +3,7 @@ import * as Yup from 'yup';
 import DeliveryProblem from '../Schema/DeliveryProblem';
 
 class ProblemDeliveryController {
-  /** lista todos os problemas de uma order */
+  /** lista todos os problemas de uma encomenda */
   async index(req, res) {
     const { id: order_id } = req.params;
 

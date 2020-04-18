@@ -1,3 +1,5 @@
+import { Op } from 'sequelize';
+
 import Order from '../models/Order';
 
 import Recipient from '../models/Recipient';
@@ -5,11 +7,19 @@ import Deliveryman from '../models/Deliveryman';
 import File from '../models/File';
 
 class OrderDeliveryController {
+  /** consulta encomendas por entregador */
   async index(req, res) {
     const { id: deliveryman_id } = req.params;
 
-    const request = await Order.findAll({
-      where: { deliveryman_id, canceled_at: null, end_date: null },
+    const { delivered } = req.query;
+
+    /** consulta e retorna as encomendas por entregador */
+    const orders = await Order.findAll({
+      where: {
+        deliveryman_id,
+        canceled_at: null,
+        end_date: delivered ? { [Op.not]: null } : { [Op.is]: null },
+      },
       attributes: [
         'id',
         'product',
@@ -52,7 +62,7 @@ class OrderDeliveryController {
       ],
     });
 
-    return res.json(request);
+    return res.json(orders);
   }
 }
 

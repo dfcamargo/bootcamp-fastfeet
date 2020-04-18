@@ -3,6 +3,7 @@ import * as Yup from 'yup';
 import Order from '../models/Order';
 
 class DeliveredController {
+  /** atualiza ordem com as informações de entrega */
   async update(req, res) {
     /** esquema de validação dos campos */
     const schema = Yup.object().shape({
@@ -13,11 +14,7 @@ class DeliveredController {
       return res.status(400).json({ message: 'Validation fails' });
     }
 
-    const { signature_id } = req.body;
     const { id } = req.params;
-
-    /** data de entrega */
-    const end_date = new Date();
 
     /** verifica se a encomenda existe */
     const order = await Order.findByPk(id);
@@ -26,21 +23,16 @@ class DeliveredController {
       return res.status(400).json({ message: 'Order not found' });
     }
 
-    /** atualiza ordem */
-    const {
-      status,
-      recipient_id,
-      deliveryman_id,
-      product,
-    } = await order.update({ end_date, signature_id }, { where: { id } });
+    const { signature_id } = req.body;
 
-    return res.json({
-      status,
-      recipient_id,
-      deliveryman_id,
-      product,
-      end_date,
-    });
+    /** data de entrega */
+    const end_date = new Date();
+
+    /** atualiza ordem */
+    await order.update({ end_date, signature_id }, { where: { id } });
+
+    /** retorna informações da orderm */
+    return res.json(order);
   }
 }
 

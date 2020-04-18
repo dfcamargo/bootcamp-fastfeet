@@ -12,6 +12,7 @@ import {
 import Order from '../models/Order';
 
 class PickupController {
+  /** atualiza ordem com as informações de retirada */
   async update(req, res) {
     const { id } = req.params;
 
@@ -28,7 +29,7 @@ class PickupController {
     const start_date = new Date();
 
     /** verifica se a quantidade máxima de retiradas do dia foi excedida */
-    const amount = await Order.count({
+    const maxCount = await Order.count({
       where: {
         deliveryman_id,
         start_date: {
@@ -37,29 +38,20 @@ class PickupController {
       },
     });
 
-    if (amount === 5) {
+    if (maxCount === 5) {
       return res.status(400).json({ message: 'Daily limit exceeded' });
     }
 
-    /** verifica horário da retirada 08h00 às 18h00 */
-    const start_officeHour = setSeconds(
-      setMinutes(setHours(start_date, 8), 0),
-      0
-    );
-    const end_officeHour = setSeconds(
-      setMinutes(setHours(start_date, 18), 0),
-      0
-    );
+    /** verifica horário da retirada está entre 08h00 às 18h00 */
+    const minTime = setSeconds(setMinutes(setHours(start_date, 8), 0), 0);
+    const maxTime = setSeconds(setMinutes(setHours(start_date, 18), 0), 0);
 
-    if (
-      isBefore(start_date, start_officeHour) ||
-      isAfter(start_date, end_officeHour)
-    ) {
-      return res.status(400).json({ message: 'Out of office hours' });
+    if (isBefore(start_date, minTime) || isAfter(start_date, maxTime)) {
+      return res.status(400).json({ message: 'Out of pickup time' });
     }
 
     /** atualiza ordem */
-    const { status, recipient_id, product, canceled_at } = await order.update(
+    const { status, recipient_id, product } = await order.update(
       {
         start_date,
       },
@@ -71,7 +63,7 @@ class PickupController {
       recipient_id,
       deliveryman_id,
       product,
-      canceled_at,
+      start_date,
     });
   }
 }

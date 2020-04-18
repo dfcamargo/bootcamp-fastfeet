@@ -46,10 +46,10 @@ routes.put('/deliveries/:id/pickup', PickupController.update);
 
 routes.put('/deliveries/:id/delivered', DeliveredController.update);
 
+routes.post('/file', upload.single('file'), FileController.store);
+
 /** Rotas autenticadas */
 routes.use(authMiddleware);
-
-routes.post('/file', upload.single('file'), FileController.store);
 
 /** destinatário */
 routes.get('/recipients', RecipientController.index);

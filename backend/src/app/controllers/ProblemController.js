@@ -10,9 +10,30 @@ import CancellationMail from '../jobs/CancellationMail';
 class ProblemController {
   /** lista todos os problemas de todas as encomendas */
   async index(req, res) {
-    const problems = await DeliveryProblem.find().sort({ createdAt: 'desc' });
+    /** controle de paginação */
+    const { page = 1 } = req.query;
 
-    return res.json(problems);
+    /** registros por página */
+    const per_page = 10;
+
+    /** total de registros */
+    const count = await DeliveryProblem.count();
+
+    const problems = await DeliveryProblem.find()
+      .limit(per_page)
+      .skip((page - 1) * per_page)
+      .sort({
+        createdAt: 'desc',
+      });
+
+    return res.json({
+      problems,
+
+      /** retorna controle de paginação */
+      per_page,
+      current_page: Number(page),
+      total_page: Math.ceil(count / per_page),
+    });
   }
 
   /** cancela a encomenda */
@@ -57,7 +78,7 @@ class ProblemController {
 
     await order.save();
 
-    /** envio de e-mail */
+    /** envio de e-mail de cancelamento */
     await Queue.add(CancellationMail.key, {
       order,
       description: problem.description,

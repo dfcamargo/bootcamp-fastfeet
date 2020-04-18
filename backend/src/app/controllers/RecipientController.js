@@ -4,11 +4,21 @@ import * as Yup from 'yup';
 import Recipient from '../models/Recipient';
 
 class RecipientController {
+  /** consulta os destinatários */
   async index(req, res) {
-    const { q: search } = req.query;
+    /** controle de paginação */
+    const { page = 1 } = req.query;
 
-    /** pesquisa destinatário */
-    const recipients = await Recipient.findAll({
+    /** registros por página */
+    const per_page = 10;
+
+    /** monta instrução condicional caso seja informado por parâmetro */
+    const where = req.query.q
+      ? { name: { [Op.iLike]: `%${req.query.q}%` } }
+      : {};
+
+    /** consulta e retorna os destinatários */
+    const { rows: recipients, count } = await Recipient.findAndCountAll({
       attributes: [
         'id',
         'name',
@@ -19,18 +29,20 @@ class RecipientController {
         'state',
         'zipcode',
       ],
-      /** filtro pelo nome */
-      where: search
-        ? {
-            name: { [Op.like]: `%${search}%` },
-          }
-        : {},
+      where,
     });
 
-    /** retornar todos os dados encontrados */
-    return res.json(recipients);
+    return res.json({
+      recipients,
+
+      /** retorna controle de paginação */
+      per_page,
+      current_page: Number(page),
+      total_page: Math.ceil(count / per_page),
+    });
   }
 
+  /** adiciona destinatário */
   async store(req, res) {
     /** esquema de validação dos campos */
     const schema = Yup.object().shape({
@@ -70,6 +82,7 @@ class RecipientController {
     });
   }
 
+  /** altera destinatário */
   async update(req, res) {
     /** verifica se existe o destinatário */
     const { id } = req.params;
@@ -118,6 +131,7 @@ class RecipientController {
     });
   }
 
+  /** exclui destinatário */
   async delete(req, res) {
     const { id } = req.params;
 
@@ -131,7 +145,6 @@ class RecipientController {
     /** remove destinatário */
     await recipient.destroy();
 
-    /** retorna confirmação */
     return res.json();
   }
 }

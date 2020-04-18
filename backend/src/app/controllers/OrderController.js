@@ -10,11 +10,21 @@ import Queue from '../../lib/Queue';
 import ConfirmationMail from '../jobs/ConfirmationMail';
 
 class OrderController {
+  /** consulta encomendas  */
   async index(req, res) {
-    const { q: search } = req.query;
+    /** controle de paginação */
+    const { page = 1 } = req.query;
 
-    /** pesquisa encomendas */
-    const orders = await Order.findAll({
+    /** registros por página */
+    const per_page = 10;
+
+    /** monta instrução condicional caso seja informado por parâmetro */
+    const where = req.query.q
+      ? { product: { [Op.iLike]: `%${req.query.q}%` } }
+      : {};
+
+    /** consulta e retorna encomendas */
+    const { rows: orders, count } = await Order.findAndCountAll({
       attributes: [
         'id',
         'product',
@@ -23,17 +33,16 @@ class OrderController {
         'canceled_at',
         'status',
       ],
-      where: search
-        ? {
-            /** filtro pelo nome do produto */
-            product: { [Op.like]: `%${search}%` },
-          }
-        : {},
+      order: [['createdAt', 'DESC']],
+      where,
+      limit: per_page,
+      offset: (page - 1) * per_page,
       include: [
         {
           model: Recipient,
           as: 'recipient',
           attributes: [
+            'id',
             'name',
             'zipcode',
             'address',
@@ -46,7 +55,7 @@ class OrderController {
         {
           model: Deliveryman,
           as: 'deliveryman',
-          attributes: ['name', 'email'],
+          attributes: ['id', 'name', 'email'],
           include: {
             model: File,
             as: 'avatar',
@@ -61,10 +70,17 @@ class OrderController {
       ],
     });
 
-    /** retorna dados encontrados */
-    return res.json(orders);
+    return res.json({
+      orders,
+
+      /** retorna controle de paginação */
+      per_page,
+      current_page: Number(page),
+      total_page: Math.ceil(count / per_page),
+    });
   }
 
+  /** adiciona encomenda */
   async store(req, res) {
     /** esquema de validação dos campos */
     const schema = Yup.object().shape({
@@ -108,7 +124,7 @@ class OrderController {
       ],
     });
 
-    /** envio de e-mail */
+    /** envio de e-mail para o entregador */
     Queue.add(ConfirmationMail.key, {
       order,
     });
@@ -117,10 +133,35 @@ class OrderController {
     return res.json(order);
   }
 
+  /** altera encomenda */
   async update(req, res) {
-    res.json({ ok: true });
+    const { id } = req.params;
+
+    /** pesquisa encomenda */
+    const order = await Order.findByPk(id);
+
+    if (!order) {
+      return res.status(400).json({ message: 'Order not found' });
+    }
+
+    /** esquema de validação dos campos */
+    const schema = Yup.object().shape({
+      deliveryman_id: Yup.number().required(),
+      recipient_id: Yup.number().required(),
+      product: Yup.string().required(),
+    });
+
+    if (!(await schema.isValid(req.body))) {
+      return res.status(400).json({ message: 'Validation fails' });
+    }
+
+    /** atualiza e retorna a encomenda */
+    await order.update(req.body);
+
+    return res.json(order);
   }
 
+  /** exclui encomenda */
   async delete(req, res) {
     const { id } = req.params;
 
@@ -134,7 +175,6 @@ class OrderController {
     /** remove encomenda */
     await order.destroy();
 
-    /** retorna confirmação */
     return res.json();
   }
 }

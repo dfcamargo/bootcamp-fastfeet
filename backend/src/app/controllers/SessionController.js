@@ -6,6 +6,7 @@ import authConfig from '../../config/auth';
 import User from '../models/User';
 
 class SessionController {
+  /** criação da sessão de usuário */
   async store(req, res) {
     /** esquema de validação dos campos */
     const schema = Yup.object().shape({
