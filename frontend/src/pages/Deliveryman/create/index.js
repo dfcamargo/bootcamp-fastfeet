@@ -1,13 +1,15 @@
 import React from 'react';
 import * as Yup from 'yup';
-import { Form, Input } from '@rocketseat/unform';
+import { Form } from '@unform/web';
 import { MdCheck, MdChevronLeft } from 'react-icons/md';
+import { toast } from 'react-toastify';
 
-import AvatarInput from './AvatarInput';
+import { FormWrapper } from '~/components/Form';
+import AvatarInput from '~/components/Form/AvatarInput';
+import Input from '~/components/Form/Input';
 
 import history from '~/services/history';
-
-import { FormWrapper } from '~/pages/_layouts/default/styles';
+import api from '~/services/api';
 
 const schema = Yup.object().shape({
   email: Yup.string()
@@ -16,26 +18,41 @@ const schema = Yup.object().shape({
   name: Yup.string().required('O campo nome é obrigatório'),
 });
 
-export default function EditDeliveryman() {
+export default function CreateDeliveryman() {
   function handleBack() {
+    /** volta para página anterior */
     history.goBack();
   }
 
-  function handleSubmit({ id }) {}
+  async function handleSubmit({ name, email, avatar_id }) {
+    try {
+      /** submete os dados */
+      await api.post('deliverymen', { name, email, avatar_id });
+
+      /** mensagem de sucesso */
+      toast.success('Entregador cadastrado com sucesso!');
+
+      /** volta para página anterior */
+      history.goBack();
+    } catch (err) {
+      /** mensagem de erro */
+      toast.error(`Ops! Ocorreu um problema. ${err}`);
+    }
+  }
 
   return (
     <>
       <header>
         <nav>
           <div>
-            <h1>Edição de entregadores</h1>
+            <h1>Cadastro de entregadores</h1>
           </div>
           <aside>
             <button type="button" onClick={handleBack}>
               <MdChevronLeft size={18} />
               Voltar
             </button>
-            <button type="submit" form="formDeliveryman">
+            <button type="submit" form="form">
               <MdCheck size={18} />
               Salvar
             </button>
@@ -44,8 +61,8 @@ export default function EditDeliveryman() {
       </header>
 
       <FormWrapper>
-        <Form id="formDeliveryman" schema={schema} onSubmit={handleSubmit}>
-          <AvatarInput />
+        <Form id="form" schema={schema} onSubmit={handleSubmit}>
+          <AvatarInput name="avatar_id" />
 
           <label htmlFor="name">
             Nome
@@ -55,7 +72,7 @@ export default function EditDeliveryman() {
           <label htmlFor="email">
             Email
             <Input
-              type="text"
+              type="email"
               id="email"
               name="email"
               placeholder="example@rocketseat.com"

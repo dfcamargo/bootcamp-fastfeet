@@ -1,12 +1,14 @@
 import React from 'react';
 import * as Yup from 'yup';
-import { Form, Input } from '@rocketseat/unform';
+import { Form } from '@unform/web';
 import { MdCheck, MdChevronLeft } from 'react-icons/md';
+import { toast } from 'react-toastify';
+
+import { FormWrapper, FormGroup } from '~/components/Form';
+import Input from '~/components/Form/Input';
 
 import history from '~/services/history';
 import api from '~/services/api';
-
-import { FormWrapper, FormGroup } from '~/pages/_layouts/default/styles';
 
 const schema = Yup.object().shape({
   name: Yup.string().required('O campo nome é obrigatório'),
@@ -18,8 +20,9 @@ const schema = Yup.object().shape({
   zipcode: Yup.number(),
 });
 
-export default function NewRecipient() {
+export default function CreateRecipient() {
   function handleBack() {
+    /** volta para página anterior */
     history.goBack();
   }
 
@@ -32,17 +35,27 @@ export default function NewRecipient() {
     state,
     zipcode,
   }) {
-    await api.post('recipients', {
-      name,
-      address,
-      address_number,
-      address_note,
-      city,
-      state,
-      zipcode,
-    });
+    try {
+      /** submete informações */
+      await api.post('recipients', {
+        name,
+        address,
+        address_number,
+        address_note,
+        city,
+        state,
+        zipcode,
+      });
 
-    history.goBack();
+      /** mensagem de sucesso */
+      toast.success('Destinatário atualizado com sucesso!');
+
+      /** volta para página anterior */
+      history.goBack();
+    } catch (err) {
+      /** mensagem de erro */
+      toast.error(`Ops! Ocorreu um problema. ${err}`);
+    }
   }
 
   return (

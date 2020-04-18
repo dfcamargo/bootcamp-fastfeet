@@ -1,14 +1,16 @@
 import React from 'react';
 import * as Yup from 'yup';
-import { Form, Input } from '@rocketseat/unform';
+import { Form } from '@unform/web';
 import { MdCheck, MdChevronLeft } from 'react-icons/md';
+import PropTypes from 'prop-types';
+import { toast } from 'react-toastify';
 
-import AvatarInput from './AvatarInput';
+import { FormWrapper } from '~/components/Form';
+import AvatarInput from '~/components/Form/AvatarInput';
+import Input from '~/components/Form/Input';
 
 import history from '~/services/history';
 import api from '~/services/api';
-
-import { FormWrapper } from '~/pages/_layouts/default/styles';
 
 const schema = Yup.object().shape({
   email: Yup.string()
@@ -17,15 +19,33 @@ const schema = Yup.object().shape({
   name: Yup.string().required('O campo nome é obrigatório'),
 });
 
-export default function NewDeliveryman() {
+export default function UpdateDeliveryman({
+  location: { state: deliveryman },
+}) {
+  /** volta para página anterior */
   function handleBack() {
     history.goBack();
   }
 
+  /** envia alterações para o servidor */
   async function handleSubmit({ name, email, avatar_id }) {
-    await api.post('deliverymen', { name, email, avatar_id });
+    try {
+      /** submete as alterações */
+      await api.put(`deliverymen/${deliveryman.id}`, {
+        name,
+        email,
+        avatar_id,
+      });
 
-    history.goBack();
+      /** mensagem de sucesso */
+      toast.success('Entregador atualizado com sucesso!');
+
+      /** volta para página anterior */
+      history.goBack();
+    } catch (err) {
+      /** mensagem de erro */
+      toast.warn(`Ops! Ocorreu um problema. ${err}`);
+    }
   }
 
   return (
@@ -33,14 +53,14 @@ export default function NewDeliveryman() {
       <header>
         <nav>
           <div>
-            <h1>Cadastro de entregadores</h1>
+            <h1>Edição de entregadores</h1>
           </div>
           <aside>
             <button type="button" onClick={handleBack}>
               <MdChevronLeft size={18} />
               Voltar
             </button>
-            <button type="submit" form="deliverymanForm">
+            <button type="submit" form="form">
               <MdCheck size={18} />
               Salvar
             </button>
@@ -49,8 +69,13 @@ export default function NewDeliveryman() {
       </header>
 
       <FormWrapper>
-        <Form id="deliverymanForm" schema={schema} onSubmit={handleSubmit}>
-          <AvatarInput />
+        <Form
+          initialData={deliveryman}
+          id="form"
+          schema={schema}
+          onSubmit={handleSubmit}
+        >
+          <AvatarInput name="avatar_id" />
 
           <label htmlFor="name">
             Nome
@@ -60,7 +85,7 @@ export default function NewDeliveryman() {
           <label htmlFor="email">
             Email
             <Input
-              type="email"
+              type="text"
               id="email"
               name="email"
               placeholder="example@rocketseat.com"
@@ -71,3 +96,7 @@ export default function NewDeliveryman() {
     </>
   );
 }
+
+UpdateDeliveryman.propTypes = {
+  location: PropTypes.instanceOf(Object).isRequired,
+};

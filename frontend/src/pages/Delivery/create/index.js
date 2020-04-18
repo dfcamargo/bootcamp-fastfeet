@@ -1,42 +1,56 @@
 import React from 'react';
 import * as Yup from 'yup';
-import { Form, Input } from '@rocketseat/unform';
+import { Form } from '@unform/web';
 import { MdCheck, MdChevronLeft } from 'react-icons/md';
+import { toast } from 'react-toastify';
 
-import AsyncSelect from './SelectInput';
+import { FormWrapper, FormGroup } from '~/components/Form';
+import Input from '~/components/Form/Input';
+import AsyncSelect from '~/components/Form/AsyncSelect';
 
 import history from '~/services/history';
 import api from '~/services/api';
-
-import { FormWrapper, FormGroup } from '~/pages/_layouts/default/styles';
 
 const schema = Yup.object().shape({
   recipient: Yup.object({
     label: Yup.string(),
     value: Yup.string(),
-  }),
+  }).required(),
   deliveryman: Yup.object({
     label: Yup.string(),
     value: Yup.string(),
-  }),
-  product: Yup.string(),
+  }).required(),
+  product: Yup.string().required('O campo produto é obrigatório'),
 });
 
-export default function EditDelivery({ id }) {
+export default function CreateDelivery() {
   function handleBack() {
+    /** volta para página anterior */
     history.goBack();
   }
 
   async function handleSubmit({ recipient, deliveryman, product }) {
-    await api.post('deliveries', {
-      recipient_id: recipient.value,
-      deliveryman_id: deliveryman.value,
-      product,
-    });
-    history.goBack();
+    try {
+      /** submete os dados */
+      await api.post('deliveries', {
+        recipient_id: recipient.value,
+        deliveryman_id: deliveryman.value,
+        product,
+      });
+
+      /** mensagem de sucesso */
+      toast.success('Encomenda cadastrada com sucesso!');
+
+      /** volta para página anterior */
+      history.goBack();
+    } catch (err) {
+      /** mensagem de erro */
+      toast.error(`Ops! Ocorreu um problema. ${err}`);
+    }
   }
 
   async function getRecipients(inputValue) {
+    /** pesquisa destinatários */
     const request = await api.get('recipients', { params: { q: inputValue } });
     return request.data.map(recipient => {
       return {
@@ -47,6 +61,7 @@ export default function EditDelivery({ id }) {
   }
 
   async function getDeliverymen(inputValue) {
+    /** pesquisa entregadores */
     const request = await api.get('deliverymen', { params: { q: inputValue } });
     return request.data.map(deliveryman => {
       return {
@@ -61,14 +76,14 @@ export default function EditDelivery({ id }) {
       <header>
         <nav>
           <div>
-            <h1>Edição de encomendas</h1>
+            <h1>Cadastro de encomendas</h1>
           </div>
           <aside>
             <button type="button" onClick={handleBack}>
               <MdChevronLeft size={18} />
               Voltar
             </button>
-            <button type="submit" form="formDelivery">
+            <button type="submit" form="deliveryForm">
               <MdCheck size={18} />
               Salvar
             </button>
@@ -100,6 +115,7 @@ export default function EditDelivery({ id }) {
               />
             </label>
           </FormGroup>
+
           <label htmlFor="product">
             Nome do produto
             <Input

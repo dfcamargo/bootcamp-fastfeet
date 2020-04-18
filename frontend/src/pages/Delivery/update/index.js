@@ -1,42 +1,56 @@
 import React from 'react';
 import * as Yup from 'yup';
-// import AsyncSelect from 'react-select/async';
-import { Form, Input } from '@rocketseat/unform';
+import { Form } from '@unform/web';
 import { MdCheck, MdChevronLeft } from 'react-icons/md';
+import PropTypes from 'prop-types';
+import { toast } from 'react-toastify';
 
-import AsyncSelect from './SelectInput';
+import { FormWrapper, FormGroup } from '~/components/Form';
+import Input from '~/components/Form/Input';
+import AsyncSelect from '~/components/Form/AsyncSelect';
 
 import history from '~/services/history';
 import api from '~/services/api';
-
-import { FormWrapper, FormGroup } from '~/pages/_layouts/default/styles';
 
 const schema = Yup.object().shape({
   recipient: Yup.object({
     label: Yup.string(),
     value: Yup.string(),
-  }).required(),
+  }).required('O campo destinatário é obrigatório'),
   deliveryman: Yup.object({
     label: Yup.string(),
     value: Yup.string(),
-  }).required(),
+  }).required('O campo entregador é obrigatório'),
   product: Yup.string().required('O campo produto é obrigatório'),
 });
 
-export default function NewDeliveryman() {
+export default function UpdateDelivery({ location: { state: delivery } }) {
   function handleBack() {
+    /** volta para página anterior */
     history.goBack();
   }
 
-  async function handleSubmit({ recipient, deliveryman, product }) {
-    await api.post('deliveries', {
-      recipient_id: recipient.value,
-      deliveryman_id: deliveryman.value,
-      product,
-    });
-    history.goBack();
+  async function handleSubmit({ product, recipient, deliveryman }) {
+    try {
+      /** submete as alterações */
+      await api.put(`deliveries/${delivery.id}`, {
+        recipient_id: recipient.value,
+        deliveryman_id: deliveryman.value,
+        product,
+      });
+
+      /** mensagem de sucesso */
+      toast.success('Encomenda atualizada com sucesso!');
+
+      /** volta para página anterior */
+      history.goBack();
+    } catch (err) {
+      /** mensagem de erro */
+      toast.error(`Ops! Ocorreu um problema. ${err}`);
+    }
   }
 
+  /** consulta todos os destinatários */
   async function getRecipients(inputValue) {
     const request = await api.get('recipients', { params: { q: inputValue } });
     return request.data.map(recipient => {
@@ -47,6 +61,7 @@ export default function NewDeliveryman() {
     });
   }
 
+  /** consulta todos os entregadores */
   async function getDeliverymen(inputValue) {
     const request = await api.get('deliverymen', { params: { q: inputValue } });
     return request.data.map(deliveryman => {
@@ -62,14 +77,14 @@ export default function NewDeliveryman() {
       <header>
         <nav>
           <div>
-            <h1>Cadastro de encomendas</h1>
+            <h1>Edição de encomendas</h1>
           </div>
           <aside>
             <button type="button" onClick={handleBack}>
               <MdChevronLeft size={18} />
               Voltar
             </button>
-            <button type="submit" form="deliveryForm">
+            <button type="submit" form="form">
               <MdCheck size={18} />
               Salvar
             </button>
@@ -78,13 +93,22 @@ export default function NewDeliveryman() {
       </header>
 
       <FormWrapper>
-        <Form id="deliveryForm" schema={schema} onSubmit={handleSubmit}>
+        <Form
+          initialData={delivery}
+          id="form"
+          schema={schema}
+          onSubmit={handleSubmit}
+        >
           <FormGroup gridTemplateColumns="1fr 1fr" gridGap="16px">
             <label htmlFor="recipient">
               Destinatário
               <AsyncSelect
                 id="recipient"
                 name="recipient"
+                defaultValue={{
+                  value: delivery.recipient.id,
+                  label: delivery.recipient.name,
+                }}
                 cacheOptions
                 defaultOptions
                 loadOptions={getRecipients}
@@ -95,6 +119,10 @@ export default function NewDeliveryman() {
               <AsyncSelect
                 id="deliveryman"
                 name="deliveryman"
+                defaultValue={{
+                  value: delivery.deliveryman.id,
+                  label: delivery.deliveryman.name,
+                }}
                 cacheOptions
                 defaultOptions
                 loadOptions={getDeliverymen}
@@ -115,3 +143,7 @@ export default function NewDeliveryman() {
     </>
   );
 }
+
+UpdateDelivery.propTypes = {
+  location: PropTypes.instanceOf(Object).isRequired,
+};

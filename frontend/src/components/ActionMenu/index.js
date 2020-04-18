@@ -6,6 +6,7 @@ import { Container, Wrapper } from './styles';
 
 export default function ActionMenu({
   id,
+  data,
   viewLabel,
   onView,
   editLabel,
@@ -35,7 +36,7 @@ export default function ActionMenu({
                 type="button"
                 onClick={() => {
                   handleVisible();
-                  onView(id);
+                  onView(data);
                 }}
               >
                 {viewLabel}
@@ -50,7 +51,7 @@ export default function ActionMenu({
                 type="button"
                 onClick={() => {
                   handleVisible();
-                  onEdit(id);
+                  onEdit(id, data);
                 }}
               >
                 {editLabel}
@@ -79,7 +80,9 @@ export default function ActionMenu({
 }
 
 ActionMenu.propTypes = {
-  id: PropTypes.number,
+  id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+  data: PropTypes.instanceOf(Object).isRequired,
+
   viewLabel: PropTypes.string,
   onView: PropTypes.func,
   editLabel: PropTypes.string,
@@ -89,7 +92,6 @@ ActionMenu.propTypes = {
 };
 
 ActionMenu.defaultProps = {
-  id: null,
   viewLabel: 'Visualizar',
   onView: null,
   editLabel: 'Editar',

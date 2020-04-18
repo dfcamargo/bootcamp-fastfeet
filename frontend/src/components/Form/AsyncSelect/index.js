@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { useField } from '@rocketseat/unform';
+import { useField } from '@unform/core';
 import AsyncSelect from 'react-select/async';
 import PropTypes from 'prop-types';
 

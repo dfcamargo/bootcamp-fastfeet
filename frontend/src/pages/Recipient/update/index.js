@@ -1,11 +1,15 @@
 import React from 'react';
 import * as Yup from 'yup';
-import { Form, Input } from '@rocketseat/unform';
+import { Form } from '@unform/web';
 import { MdCheck, MdChevronLeft } from 'react-icons/md';
+import PropTypes from 'prop-types';
+import { toast } from 'react-toastify';
+
+import { FormWrapper, FormGroup } from '~/components/Form';
+import Input from '~/components/Form/Input';
 
 import history from '~/services/history';
-
-import { FormWrapper, FormGroup } from '~/pages/_layouts/default/styles';
+import api from '~/services/api';
 
 const schema = Yup.object().shape({
   name: Yup.string().required('O campo nome é obrigatório'),
@@ -17,12 +21,43 @@ const schema = Yup.object().shape({
   zipcode: Yup.number(),
 });
 
-export default function EditRecipient() {
+export default function UpdateRecipient({ location: { state: recipient } }) {
   function handleBack() {
+    /** volta para página anterior */
     history.goBack();
   }
 
-  function handleSubmit() {}
+  async function handleSubmit({
+    name,
+    address,
+    address_number,
+    address_note,
+    city,
+    state,
+    zipcode,
+  }) {
+    try {
+      /** submete as alterações */
+      await api.put(`recipients/${recipient.id}`, {
+        name,
+        address,
+        address_number,
+        address_note,
+        city,
+        state,
+        zipcode,
+      });
+
+      /** mensagem de sucesso */
+      toast.success('Destinatário atualizado com sucesso!');
+
+      /** volta para página anterior */
+      history.goBack();
+    } catch (err) {
+      /** mensagem de erro */
+      toast.error(`Ops! Ocorreu um problema. ${err}`);
+    }
+  }
 
   return (
     <>
@@ -45,7 +80,12 @@ export default function EditRecipient() {
       </header>
 
       <FormWrapper>
-        <Form id="form" schema={schema} onSubmit={handleSubmit}>
+        <Form
+          initialData={recipient}
+          id="form"
+          schema={schema}
+          onSubmit={handleSubmit}
+        >
           <label htmlFor="name">
             Nome
             <Input
@@ -110,3 +150,7 @@ export default function EditRecipient() {
     </>
   );
 }
+
+UpdateRecipient.propTypes = {
+  location: PropTypes.instanceOf(Object).isRequired,
+};

@@ -1,45 +1,64 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { MdSearch, MdAdd } from 'react-icons/md';
+import { toast } from 'react-toastify';
 
+import { Table, TableImage } from '~/components/Table';
 import ActionMenu from '~/components/ActionMenu';
+import Pagination from '~/components/Pagination';
 
 import api from '~/services/api';
 import history from '~/services/history';
 
-import { TableWrapper, TableImage } from '~/pages/_layouts/default/styles';
-
 export default function Deliveryman() {
   const [deliverymen, setDeliverymen] = useState([]);
 
+  /** controle de páginas */
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPage, setTotalPage] = useState(0);
+
+  /** pesquisa */
+  const [search, setSearch] = useState(null);
+
   useEffect(() => {
-    async function loadDeliverymans() {
-      const response = await api.get('deliverymen');
-      setDeliverymen(response.data);
+    async function loadDeliverymen() {
+      /** pesquisa encomenda pelo produto */
+      const q = search || null;
+
+      const response = await api.get('deliverymen', {
+        params: {
+          page: currentPage,
+          q,
+        },
+      });
+
+      setDeliverymen(response.data.deliverymen);
+
+      /** ajusta dados da página */
+      setTotalPage(response.data.total_page);
     }
 
-    loadDeliverymans();
-  }, []);
+    /** consulta entregadores */
+    loadDeliverymen();
+  }, [currentPage, search]);
 
-  async function handleSearch(e) {
-    const q = e.target.value;
-
-    const response = await api.get('deliverymen', {
-      params: {
-        q,
-      },
-    });
-
-    setDeliverymen(response.data);
-  }
-
-  function handleUpdate(id) {
-    history.push(`/deliverymen/edit/${id}`);
+  function handleUpdate(id, data) {
+    /** redireciona para página de alteração */
+    history.push(`/deliverymen/edit/${id}`, data);
   }
 
   async function handleDelete(id) {
-    if (window.confirm('Deseja realmente excluir o Entregador?')) {
-      await api.delete(`deliverymen/${id}`);
+    /** confirmação e exclusão */
+    if (window.confirm('Deseja realmente excluir o entregador?')) {
+      try {
+        await api.delete(`deliverymen/${id}`);
+
+        /** mensagem de sucesso */
+        toast.success('Entregador excluído com sucesso!');
+      } catch (err) {
+        /** mensagem de erro */
+        toast.error(`Ops... Ocorreu um erro! ${err}`);
+      }
     }
   }
 
@@ -55,7 +74,7 @@ export default function Deliveryman() {
               id="search"
               name="search"
               placeholder="Buscar por entregadores"
-              onChange={handleSearch}
+              onChange={e => setSearch(e.target.value)}
             />
           </div>
 
@@ -68,7 +87,7 @@ export default function Deliveryman() {
         </nav>
       </header>
 
-      <TableWrapper>
+      <Table>
         <thead>
           <tr>
             <th>ID</th>
@@ -84,12 +103,14 @@ export default function Deliveryman() {
               <td>{`#${deliveryman.id}`}</td>
               <td>
                 <TableImage>
-                  {deliveryman.avatar && (
-                    <img
-                      src={deliveryman.avatar.url}
-                      alt={deliveryman.avatar.url}
-                    />
-                  )}
+                  <img
+                    src={
+                      deliveryman.avatar
+                        ? deliveryman.avatar.url
+                        : `https://api.adorable.io/avatars/34/${deliveryman.name}.png`
+                    }
+                    alt={deliveryman.name}
+                  />
                 </TableImage>
               </td>
               <td>{deliveryman.name}</td>
@@ -97,6 +118,7 @@ export default function Deliveryman() {
               <td>
                 <ActionMenu
                   id={deliveryman.id}
+                  data={deliveryman}
                   onEdit={handleUpdate}
                   onDelete={handleDelete}
                 />
@@ -104,7 +126,14 @@ export default function Deliveryman() {
             </tr>
           ))}
         </tbody>
-      </TableWrapper>
+      </Table>
+
+      <Pagination
+        pageCount={totalPage}
+        onPageChange={e => {
+          setCurrentPage(e.selected + 1);
+        }}
+      />
     </>
   );
 }

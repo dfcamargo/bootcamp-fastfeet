@@ -17,7 +17,6 @@ export const Container = styled.div`
     img {
       display: flex;
       border-radius: 50%;
-      border: 2px dashed #ddd;
       background: #fff;
       height: 150px;
       width: 150px;

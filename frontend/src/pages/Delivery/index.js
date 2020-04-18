@@ -1,52 +1,77 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { MdSearch, MdAdd } from 'react-icons/md';
+import { toast } from 'react-toastify';
 
+import { Table, TableImage, TableStatus } from '~/components/Table';
 import ActionMenu from '~/components/ActionMenu';
+import Pagination from '~/components/Pagination';
+
+import ModalLayout from '~/pages/_layouts/modal';
+import DeliveryModal from '~/components/DeliveryModal';
 
 import history from '~/services/history';
 import api from '~/services/api';
 
-import {
-  TableWrapper,
-  TableImage,
-  TableStatus,
-} from '~/pages/_layouts/default/styles';
-
 export default function Delivery() {
   const [deliveries, setDeliveries] = useState([]);
 
+  /** controle de páginas */
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPage, setTotalPage] = useState(0);
+
+  /** pesquisa */
+  const [search, setSearch] = useState(null);
+
+  const [show, setShow] = useState(false);
+  const [modalDelivery, setModalDelivery] = useState(null);
+
   useEffect(() => {
     async function loadDeliveries() {
-      const response = await api.get('deliveries');
-      setDeliveries(response.data);
+      /** pesquisa encomenda pelo produto */
+      const q = search || null;
+
+      const response = await api.get('deliveries', {
+        params: {
+          page: currentPage,
+          q,
+        },
+      });
+
+      setDeliveries(response.data.orders);
+
+      /** ajusta dados da página */
+      setTotalPage(response.data.total_page);
     }
 
+    /** consulta encomendas */
     loadDeliveries();
-  }, []);
+  }, [currentPage, search]);
 
-  function handleView() {}
+  function handleView(data) {
+    /** exibe o modal */
+    setModalDelivery(data);
+    setShow(true);
+  }
 
-  function handlUpdate(id) {
-    history.push(`deliveries/edit/${id}`);
+  function handlUpdate(id, data) {
+    /** redireciona para página de alteração */
+    history.push(`deliveries/edit/${id}`, data);
   }
 
   async function handleDelete(id) {
-    if (window.confirm('Deseja realmente excluir a Encomenda?')) {
-      await api.delete(`deliveries/${id}`);
+    /** confirmação e exclusão */
+    if (window.confirm('Deseja realmente excluir a encomenda?')) {
+      try {
+        await api.delete(`deliveries/${id}`);
+
+        /** mensagem de sucesso */
+        toast.success('Encomenda excluída com sucesso!');
+      } catch (err) {
+        /** mensagem de erro */
+        toast.error(`Ops... Ocorreu um erro! ${err}`);
+      }
     }
-  }
-
-  async function handleSearch(e) {
-    const q = e.target.value;
-
-    const response = await api.get('deliveries', {
-      params: {
-        q,
-      },
-    });
-
-    setDeliveries(response.data);
   }
 
   return (
@@ -61,7 +86,7 @@ export default function Delivery() {
               id="search"
               name="search"
               placeholder="Buscar por encomendas"
-              onChange={handleSearch}
+              onChange={e => setSearch(e.target.value)}
             />
           </div>
 
@@ -74,18 +99,20 @@ export default function Delivery() {
         </nav>
       </header>
 
-      <TableWrapper>
+      <Table>
         <thead>
           <tr>
             <th>ID</th>
             <th>Destinatário</th>
             <th>Entregador</th>
+            <th>Produto</th>
             <th>Cidade</th>
             <th>Estado</th>
             <th>Status</th>
             <th>Ações</th>
           </tr>
         </thead>
+
         <tbody>
           {deliveries.map(delivery => (
             <tr key={delivery.id}>
@@ -93,15 +120,18 @@ export default function Delivery() {
               <td>{delivery.recipient.name}</td>
               <td>
                 <TableImage>
-                  {delivery.deliveryman.avatar && (
-                    <img
-                      src={delivery.deliveryman.avatar.url}
-                      alt={delivery.deliveryman.name}
-                    />
-                  )}
+                  <img
+                    src={
+                      delivery.deliveryman.avatar
+                        ? delivery.deliveryman.avatar.url
+                        : `https://api.adorable.io/avatars/34/${delivery.deliveryman.name}.png`
+                    }
+                    alt={delivery.deliveryman.name}
+                  />
                   {delivery.deliveryman.name}
                 </TableImage>
               </td>
+              <td>{delivery.product}</td>
               <td>{delivery.recipient.city}</td>
               <td>{delivery.recipient.state}</td>
               <td>
@@ -112,15 +142,29 @@ export default function Delivery() {
               <td>
                 <ActionMenu
                   id={delivery.id}
+                  data={delivery}
                   onView={handleView}
-                  onEdit={handlUpdate}
-                  onDelete={handleDelete}
+                  onEdit={delivery.start_date ? null : handlUpdate}
+                  onDelete={delivery.start_date ? null : handleDelete}
                 />
               </td>
             </tr>
           ))}
         </tbody>
-      </TableWrapper>
+      </Table>
+
+      <Pagination
+        pageCount={totalPage}
+        onPageChange={e => {
+          setCurrentPage(e.selected + 1);
+        }}
+      />
+
+      {show && (
+        <ModalLayout onClose={setShow}>
+          <DeliveryModal delivery={modalDelivery} />
+        </ModalLayout>
+      )}
     </>
   );
 }
