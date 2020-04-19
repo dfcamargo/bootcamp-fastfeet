@@ -29,7 +29,10 @@ class RecipientController {
         'state',
         'zipcode',
       ],
+      order: ['id'],
       where,
+      limit: per_page,
+      offset: (page - 1) * per_page,
     });
 
     return res.json({
