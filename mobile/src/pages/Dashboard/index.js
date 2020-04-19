@@ -24,6 +24,8 @@ import {
   LinkButtonText,
   Title,
   DeliveryList,
+  EmptyItem,
+  EmptyText,
 } from './styles';
 
 function Dashboard({ isFocused, navigation: { navigate } }) {
@@ -64,7 +66,7 @@ function Dashboard({ isFocused, navigation: { navigate } }) {
         <Avatar
           source={{
             uri: profile.avatar
-              ? profile.avatar.url
+              ? `${api.defaults.baseURL}/files/${profile.avatar.path}`
               : `https://api.adorable.io/avatars/140/${profile.name}.png`,
           }}
         />
@@ -90,13 +92,19 @@ function Dashboard({ isFocused, navigation: { navigate } }) {
           </LinkButton>
         </Header>
 
-        <DeliveryList
-          data={deliveries}
-          keyExtractor={item => String(item.id)}
-          renderItem={({ item }) => (
-            <Order data={item} onItemDetail={handleItemDetail} />
-          )}
-        />
+        {deliveries.length ? (
+          <DeliveryList
+            data={deliveries}
+            keyExtractor={item => String(item.id)}
+            renderItem={({ item }) => (
+              <Order data={item} onItemDetail={handleItemDetail} />
+            )}
+          />
+        ) : (
+          <EmptyItem>
+            <EmptyText>Nenhuma encomenda encontrada</EmptyText>
+          </EmptyItem>
+        )}
       </Delivery>
     </Container>
   );

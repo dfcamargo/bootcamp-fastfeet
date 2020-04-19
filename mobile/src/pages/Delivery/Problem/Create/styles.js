@@ -1,9 +1,13 @@
+import { Platform } from 'react-native';
 import styled from 'styled-components/native';
 
 import Input from '~/components/Input';
 import Button from '~/components/Button';
 
-export const Container = styled.SafeAreaView`
+export const Container = styled.KeyboardAvoidingView.attrs({
+  enabled: Platform.OS === 'ios',
+  behavior: 'padding',
+})`
   flex: 1;
   padding: 50px 25px 10px;
 `;
@@ -13,7 +17,7 @@ export const Form = styled.View`
 `;
 
 export const FormInput = styled(Input)`
-  height: 300px;
+  flex: 1;
   background: #fff;
   opacity: 1;
   border: 1px solid #ccc;

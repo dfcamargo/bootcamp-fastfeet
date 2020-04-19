@@ -66,6 +66,7 @@ export const ActionButton = styled.TouchableOpacity`
   justify-content: center;
   padding: 20px;
   flex: 1;
+  opacity: ${props => (props.disabled ? 0.5 : 1)};
 `;
 
 export const ButtonText = styled.Text`

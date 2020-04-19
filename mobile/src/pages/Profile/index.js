@@ -5,6 +5,8 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 
 import { signOut } from '~/store/modules/auth/actions';
 
+import api from '~/services/api';
+
 import {
   Container,
   Avatar,
@@ -32,7 +34,7 @@ export default function Profile() {
       <Avatar
         source={{
           uri: profile.avatar
-            ? profile.avatar.url
+            ? `${api.defaults.baseURL}/files/${profile.avatar.path}`
             : `https://api.adorable.io/avatars/140/${profile.name}.png`,
         }}
       />

@@ -73,3 +73,15 @@ export const DeliveryList = styled.FlatList.attrs({
 })`
   flex: 1;
 `;
+
+export const EmptyItem = styled.View`
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+`;
+
+export const EmptyText = styled.Text`
+  font-size: 16px;
+  color: #999;
+  font-style: italic;
+`;

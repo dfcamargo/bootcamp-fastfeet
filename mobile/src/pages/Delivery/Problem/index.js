@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { TouchableOpacity } from 'react-native';
+import { parseISO, format } from 'date-fns';
 import PropTypes from 'prop-types';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
@@ -14,6 +15,8 @@ import {
   ProblemItem,
   Text,
   Date,
+  EmptyItem,
+  EmptyText,
 } from './styles';
 
 export default function Problem({ navigation: { getParam } }) {
@@ -35,16 +38,22 @@ export default function Problem({ navigation: { getParam } }) {
     <Background>
       <Container>
         <Title>{`Encomenda #${id}`}</Title>
-        <ProblemList
-          data={problems}
-          keyExtractor={item => String(item._id)}
-          renderItem={({ item }) => (
-            <ProblemItem>
-              <Text>{item.description}</Text>
-              <Date>{item.createdAt}</Date>
-            </ProblemItem>
-          )}
-        />
+        {problems.length ? (
+          <ProblemList
+            data={problems}
+            keyExtractor={item => String(item._id)}
+            renderItem={({ item }) => (
+              <ProblemItem>
+                <Text>{item.description}</Text>
+                <Date>{format(parseISO(item.createdAt), 'dd/MM/yyyy')}</Date>
+              </ProblemItem>
+            )}
+          />
+        ) : (
+          <EmptyItem>
+            <EmptyText>Nenhum problema encontrado</EmptyText>
+          </EmptyItem>
+        )}
       </Container>
     </Background>
   );

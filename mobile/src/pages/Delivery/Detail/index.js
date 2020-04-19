@@ -55,11 +55,17 @@ export default function Detail({ navigation: { getParam, navigate, goBack } }) {
   }
 
   function handleDelivered(id) {
-    navigate('Confirm', { id });
+    /** não permite a confirmação caso a encomenda já esteja entregue */
+    if (!delivery.end_date) {
+      navigate('Confirm', { id });
+    }
   }
 
   function handleCreateProblem(id) {
-    navigate('CreateProblem', { id });
+    /** não permite a criação de problema caso a encomenda já esteja entregue */
+    if (!delivery.end_date) {
+      navigate('CreateProblem', { id });
+    }
   }
 
   function handleListProblem(id) {
@@ -113,7 +119,10 @@ export default function Detail({ navigation: { getParam, navigate, goBack } }) {
           </DeliveryInfo>
 
           <Footer>
-            <ActionButton onPress={() => handleCreateProblem(delivery.id)}>
+            <ActionButton
+              disabled={Boolean(delivery.end_date)}
+              onPress={() => handleCreateProblem(delivery.id)}
+            >
               <Icon name="highlight-off" size={25} color="#e74040" />
               <ButtonText>Informar Problema</ButtonText>
             </ActionButton>
@@ -124,7 +133,10 @@ export default function Detail({ navigation: { getParam, navigate, goBack } }) {
             </ActionButton>
 
             {delivery.start_date ? (
-              <ActionButton onPress={() => handleDelivered(delivery.id)}>
+              <ActionButton
+                disabled={Boolean(delivery.end_date)}
+                onPress={() => handleDelivered(delivery.id)}
+              >
                 <Icon name="done-all" size={25} color="#7d40e7" />
                 <ButtonText>Confirmar Entrega</ButtonText>
               </ActionButton>

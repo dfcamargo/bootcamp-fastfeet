@@ -17,7 +17,7 @@ import {
   SubmitButton,
 } from './styles';
 
-export default function Confirm({ navigation: { getParam, goBack } }) {
+export default function Confirm({ navigation: { getParam, navigate } }) {
   const [signature, setSignature] = useState(null);
 
   const refCamera = useRef(null);
@@ -26,7 +26,12 @@ export default function Confirm({ navigation: { getParam, goBack } }) {
 
   async function takePicture() {
     if (refCamera) {
-      const options = { quality: 0.5, base64: true };
+      const options = {
+        quality: 0.5,
+        base64: true,
+        orientation: RNCamera.Constants.Orientation.portrait,
+        fixOrientation: true,
+      };
       const data = await refCamera.current.takePictureAsync(options);
 
       const formData = new FormData();
@@ -57,7 +62,7 @@ export default function Confirm({ navigation: { getParam, goBack } }) {
         signature_id: signature,
       });
 
-      goBack();
+      navigate('Dashboard');
     } catch (err) {
       Alert.alert('Error', err.response.data.message);
     }
@@ -97,12 +102,12 @@ export default function Confirm({ navigation: { getParam, goBack } }) {
   );
 }
 
-Confirm.navigationOptions = ({ navigation }) => ({
+Confirm.navigationOptions = ({ navigation: { goBack } }) => ({
   title: 'Confirmar entrega',
   headerLeft: () => (
     <TouchableOpacity
       onPress={() => {
-        navigation.goBack();
+        goBack();
       }}
     >
       <Icon name="chevron-left" size={20} color="#fff" />

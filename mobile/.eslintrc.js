@@ -12,6 +12,8 @@ module.exports = {
     Atomics: 'readonly',
     SharedArrayBuffer: 'readonly',
     __DEV__: 'readonly',
+
+    FormData: 'writable',
   },
   parser: 'babel-eslint',
   parserOptions: {
@@ -29,6 +31,7 @@ module.exports = {
     'prettier/prettier': 'error',
     'import/prefer-default-export': 'off',
     'no-param-reassign': ['error', { props: true, ignorePropertyModificationsFor: ['draft'] }],
+    'no-underscore-dangle': ['error', { 'allow': ['_id'] }],
     'no-console': ['error', { allow: ['tron'] }],
     'react/jsx-props-no-spreading': 'off',
     'react/jsx-filename-extension': [
