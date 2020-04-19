@@ -1,10 +1,12 @@
+import 'dotenv/config';
+
 export default {
-  host: 'smtp.mailtrap.io',
-  port: '2525',
+  host: process.env.MAIL_HOST,
+  port: process.env.MAIL_PORT,
   secure: false,
   auth: {
-    user: 'a5160492dc9786',
-    pass: '8fec81a28a6c26',
+    user: process.env.MAIL_USER,
+    pass: process.env.MAIL_PASS,
   },
   default: {
     from: 'Equipe FastFeed <noreply@fastfeed.com.br>',
