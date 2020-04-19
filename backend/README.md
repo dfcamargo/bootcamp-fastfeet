@@ -1,14 +1,14 @@
 # FastFeet - Backend
 
-Projeto de conclusão do Bootcamp da Rocketseat. Backend utilizando Node/Express/Postgres/MongoDB/Redis/Nodemailer
+Projeto de conclusão do Bootcamp da [Rocketseat](https://rocketseat.com.br/). Backend utilizando Node/Express/Postgres/MongoDB/Redis/Nodemailer
 
-Dentro dessa stack cada ferramenta tem sua responsabildiade:
+Dentro dessa stack cada ferramenta tem sua responsabilidade:
 
 - **Node/Express:** Gerenciamento de requisições HTTP do frontend e mobile;
 - **Postgres:** Armazenamento dos dados das entregas, destinatários, entregadores e usuários;
 - **MongoDB:** Armazenamento de problemas ocasionados na entrega;
 - **Redis:** Armazenamento de solicitações e envio de e-mail;
-- **Nodemailer:** Envio de e-mails de confirmação e cancelamento para os entregadores;
+- **Nodemailer:** Envio de e-mails de confirmação e cancelamento para os entregadores.
 
 ## Rodando o Backend
 
@@ -21,23 +21,23 @@ yarn
 
 A partir daqui você precisará do [Docker](https://www.docker.com/) instalado:
 
-Crie arquivo de variáveis de ambiente utilizando o exemplo **./.env.example**
+Crie arquivo de variáveis de ambiente utilizando o exemplo **.env.example**
 
 Dentro desse arquivo preencha algumas configurações estáticas:
 
 ```
 
 # Auth - Utilizado para criptografia do token da autenticação do usuário
-APP_SECRET=95a20ec124be28749016ebc1e46382e8
+APP_SECRET=
 
 # Database - Credenciais do banco de dados Postgres
-DB_HOST=localhost
-DB_USER=postgres
-DB_PASS=123@abc
-DB_NAME=fastfeed
+DB_HOST=
+DB_USER=
+DB_PASS=
+DB_NAME=
 
 # Mongo - Acesso MongoDB
-MONGO_URL=mongodb://localhost:27017/fastfeet
+MONGO_URL=
 
 # Redis - Acesso Redis
 REDIS_HOST=127.0.0.1
@@ -50,13 +50,15 @@ MAIL_USER=
 MAIL_PASS=
 
 # Sentry - DSN do Sentry para monitoramente de erros
-SENTRY_DSN=https://52fe838caf2f4736ba1dd0eb043b734b@sentry.io/1806049
+SENTRY_DSN=
 ```
 
-Agora com o Docker vamos subir nossos containers:
+Agora com o Docker vamos criar nosso containers:
 
 ```
-docker-compose up -d
+docker run --name postgres -e POSTGRES_PASSWORD="123@abc" -e POSTGRES_DB="fastfeet" -p 5432:5432 -d postgres:11
+docker run --name mongo -p 27017:27017 -d mongo
+docker run --name redis -p 6379:6379 -d redis:alpine
 ```
 
 Com o servidor criado executaremos nossas migrations para o Postgres montar a base de dados:
@@ -66,17 +68,23 @@ yarn sequelize db:migrate
 yarn sequelize db:seed:all
 ```
 
-Agora você poderá iniciar o servidor de aplicação e o servidor de envio de e-mails:
+Agora você poderá iniciar o servidor de aplicação:
 
 ```
 #Servidor de aplicação
 yarn dev
+```
 
 Ou
 
+```
 #Servidor de aplicação em modo depuração
 yarn dev:debug
+```
 
+E o servidor de gerenciamento de e-mails:
+
+```
 #Servidor gerenciamento de envio de e-mails
 yarn queue
 ```
