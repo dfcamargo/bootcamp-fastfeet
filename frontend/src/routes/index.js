@@ -4,7 +4,6 @@ import { Switch } from 'react-router-dom';
 import Route from './Route';
 
 import SignIn from '~/pages/SignIn';
-import SignUp from '~/pages/SignUp';
 
 import Delivery from '~/pages/Delivery';
 import CreateDelivery from '~/pages/Delivery/create';
@@ -24,7 +23,6 @@ export default function Routes() {
   return (
     <Switch>
       <Route path="/" exact component={SignIn} />
-      <Route path="/signup" component={SignUp} />
 
       <Route path="/deliveries" exact component={Delivery} isPrivate />
       <Route path="/deliveries/new" component={CreateDelivery} isPrivate />
@@ -40,7 +38,11 @@ export default function Routes() {
 
       <Route path="/recipients" exact component={Recipient} isPrivate />
       <Route path="/recipients/new" component={CreateRecipient} isPrivate />
-      <Route path="/recipients/edit/:id" component={UpdateRecipient} isPrivate />
+      <Route
+        path="/recipients/edit/:id"
+        component={UpdateRecipient}
+        isPrivate
+      />
 
       <Route path="/problems" component={DeliveryProblem} isPrivate />
     </Switch>

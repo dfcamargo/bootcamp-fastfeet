@@ -35,6 +35,7 @@ module.exports = {
     'no-console': ['error', { allow: ['tron'] }],
     'no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
     'no-underscore-dangle': ['error', { 'allow': ['_id'] }],
+    'no-param-reassign': ['error', { ignorePropertyModificationsFor: ['draft']  }],
     'react/jsx-filename-extension': ['error', { 'extensions': ['.js', '.jsx'] }],
     'react/jsx-one-expression-per-line': 'off',
     'react/jsx-props-no-spreading': 'off',

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import * as Yup from 'yup';
 import { Form } from '@unform/web';
 import { MdCheck, MdChevronLeft } from 'react-icons/md';
@@ -12,25 +12,34 @@ import Input from '~/components/Form/Input';
 import history from '~/services/history';
 import api from '~/services/api';
 
-const schema = Yup.object().shape({
-  email: Yup.string()
-    .email('E-mail inválido')
-    .required('O campo e-mail é obrigatório'),
-  name: Yup.string().required('O campo nome é obrigatório'),
-});
-
 export default function UpdateDeliveryman({
   location: { state: deliveryman },
 }) {
+  const formRef = useRef(null);
+
   /** volta para página anterior */
   function handleBack() {
     history.goBack();
   }
 
   /** envia alterações para o servidor */
-  async function handleSubmit({ name, email, avatar_id }) {
+  async function handleSubmit(data) {
     try {
-      /** submete as alterações */
+      /** validação dos campos do formulário */
+      const schema = Yup.object().shape({
+        email: Yup.string()
+          .email('E-mail inválido')
+          .required('O campo e-mail é obrigatório'),
+        name: Yup.string().required('O campo nome é obrigatório'),
+      });
+
+      await schema.validate(data, {
+        abortEarly: false,
+      });
+
+      /** submete os dados */
+      const { name, email, avatar_id } = data;
+
       await api.put(`deliverymen/${deliveryman.id}`, {
         name,
         email,
@@ -43,8 +52,17 @@ export default function UpdateDeliveryman({
       /** volta para página anterior */
       history.goBack();
     } catch (err) {
-      /** mensagem de erro */
-      toast.warn(`Ops! Ocorreu um problema. ${err}`);
+      const validationErrors = {};
+
+      if (err instanceof Yup.ValidationError) {
+        err.inner.forEach(error => {
+          validationErrors[error.path] = error.message;
+        });
+        formRef.current.setErrors(validationErrors);
+      } else {
+        /** mensagem de erro */
+        toast.error(`Ops! Ocorreu um problema. ${err}`);
+      }
     }
   }
 
@@ -72,24 +90,19 @@ export default function UpdateDeliveryman({
         <Form
           initialData={deliveryman}
           id="form"
-          schema={schema}
+          ref={formRef}
           onSubmit={handleSubmit}
         >
           <AvatarInput name="avatar_id" />
 
           <label htmlFor="name">
             Nome
-            <Input type="text" id="name" name="name" placeholder="John Due" />
+            <Input type="text" id="name" name="name" />
           </label>
 
           <label htmlFor="email">
             Email
-            <Input
-              type="text"
-              id="email"
-              name="email"
-              placeholder="example@rocketseat.com"
-            />
+            <Input type="text" id="email" name="email" />
           </label>
         </Form>
       </FormWrapper>

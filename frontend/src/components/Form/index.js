@@ -43,7 +43,7 @@ export const FormWrapper = styled.div`
         }
       }
 
-      span {
+      span.error {
         font-size: 10px;
         color: #de3b3b;
       }

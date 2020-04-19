@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import * as Yup from 'yup';
 import { Form } from '@unform/web';
 import { MdCheck, MdChevronLeft } from 'react-icons/md';
@@ -11,30 +11,33 @@ import AsyncSelect from '~/components/Form/AsyncSelect';
 import history from '~/services/history';
 import api from '~/services/api';
 
-const schema = Yup.object().shape({
-  recipient: Yup.object({
-    label: Yup.string(),
-    value: Yup.string(),
-  }).required(),
-  deliveryman: Yup.object({
-    label: Yup.string(),
-    value: Yup.string(),
-  }).required(),
-  product: Yup.string().required('O campo produto é obrigatório'),
-});
-
 export default function CreateDelivery() {
+  const formRef = useRef(null);
+
   function handleBack() {
     /** volta para página anterior */
     history.goBack();
   }
 
-  async function handleSubmit({ recipient, deliveryman, product }) {
+  async function handleSubmit(data) {
     try {
+      /** validação dos campos do formulário */
+      const schema = Yup.object().shape({
+        recipient: Yup.string().required('O campo destinatário é obrigatório'),
+        deliveryman: Yup.string().required('O campo entregador é obrigatório'),
+        product: Yup.string().required('O campo produto é obrigatório'),
+      });
+
+      await schema.validate(data, {
+        abortEarly: false,
+      });
+
       /** submete os dados */
+      const { recipient, deliveryman, product } = data;
+
       await api.post('deliveries', {
-        recipient_id: recipient.value,
-        deliveryman_id: deliveryman.value,
+        recipient_id: recipient,
+        deliveryman_id: deliveryman,
         product,
       });
 
@@ -44,15 +47,24 @@ export default function CreateDelivery() {
       /** volta para página anterior */
       history.goBack();
     } catch (err) {
-      /** mensagem de erro */
-      toast.error(`Ops! Ocorreu um problema. ${err}`);
+      const validationErrors = {};
+
+      if (err instanceof Yup.ValidationError) {
+        err.inner.forEach(error => {
+          validationErrors[error.path] = error.message;
+        });
+        formRef.current.setErrors(validationErrors);
+      } else {
+        /** mensagem de erro */
+        toast.error(`Ops! Ocorreu um problema. ${err}`);
+      }
     }
   }
 
   async function getRecipients(inputValue) {
     /** pesquisa destinatários */
     const request = await api.get('recipients', { params: { q: inputValue } });
-    return request.data.map(recipient => {
+    return request.data.recipients.map(recipient => {
       return {
         value: recipient.id,
         label: recipient.name,
@@ -63,7 +75,7 @@ export default function CreateDelivery() {
   async function getDeliverymen(inputValue) {
     /** pesquisa entregadores */
     const request = await api.get('deliverymen', { params: { q: inputValue } });
-    return request.data.map(deliveryman => {
+    return request.data.deliverymen.map(deliveryman => {
       return {
         value: deliveryman.id,
         label: deliveryman.name,
@@ -92,7 +104,7 @@ export default function CreateDelivery() {
       </header>
 
       <FormWrapper>
-        <Form id="deliveryForm" schema={schema} onSubmit={handleSubmit}>
+        <Form id="deliveryForm" ref={formRef} onSubmit={handleSubmit}>
           <FormGroup gridTemplateColumns="1fr 1fr" gridGap="16px">
             <label htmlFor="recipient">
               Destinatário
@@ -122,7 +134,7 @@ export default function CreateDelivery() {
               type="text"
               id="product"
               name="product"
-              placeholder="Yamaha SX7"
+              placeholder="IPad 2"
             />
           </label>
         </Form>

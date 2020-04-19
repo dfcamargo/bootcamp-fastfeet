@@ -153,12 +153,14 @@ export default function Delivery() {
         </tbody>
       </Table>
 
-      <Pagination
-        pageCount={totalPage}
-        onPageChange={e => {
-          setCurrentPage(e.selected + 1);
-        }}
-      />
+      {totalPage !== 0 && (
+        <Pagination
+          pageCount={totalPage}
+          onPageChange={e => {
+            setCurrentPage(e.selected + 1);
+          }}
+        />
+      )}
 
       {show && (
         <ModalLayout onClose={setShow}>

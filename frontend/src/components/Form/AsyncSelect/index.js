@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 
 export default function SelectInput({ name, ...rest }) {
   const selectRef = useRef();
-  const { fieldName, registerField } = useField(name);
+  const { fieldName, registerField, error } = useField(name);
 
   useEffect(() => {
     registerField({
@@ -29,7 +29,17 @@ export default function SelectInput({ name, ...rest }) {
     });
   }, [fieldName, registerField, rest.isMulti]);
 
-  return <AsyncSelect ref={selectRef} {...rest} />;
+  return (
+    <>
+      <AsyncSelect
+        ref={selectRef}
+        className={error ? 'has-error' : ''}
+        {...rest}
+      />
+
+      {error && <span className="error">{error}</span>}
+    </>
+  );
 }
 
 SelectInput.propTypes = {

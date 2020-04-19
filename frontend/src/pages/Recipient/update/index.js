@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import * as Yup from 'yup';
 import { Form } from '@unform/web';
 import { MdCheck, MdChevronLeft } from 'react-icons/md';
@@ -11,33 +11,42 @@ import Input from '~/components/Form/Input';
 import history from '~/services/history';
 import api from '~/services/api';
 
-const schema = Yup.object().shape({
-  name: Yup.string().required('O campo nome é obrigatório'),
-  address: Yup.string(),
-  address_number: Yup.number(),
-  address_note: Yup.string(),
-  city: Yup.string(),
-  state: Yup.string(),
-  zipcode: Yup.number(),
-});
-
 export default function UpdateRecipient({ location: { state: recipient } }) {
+  const formRef = useRef(null);
+
   function handleBack() {
     /** volta para página anterior */
     history.goBack();
   }
 
-  async function handleSubmit({
-    name,
-    address,
-    address_number,
-    address_note,
-    city,
-    state,
-    zipcode,
-  }) {
+  async function handleSubmit(data) {
     try {
-      /** submete as alterações */
+      /** validação dos campos do formulário */
+      const schema = Yup.object().shape({
+        name: Yup.string().required('O campo nome é obrigatório'),
+        address: Yup.string().required('O campo número é obrigatório'),
+        address_number: Yup.string().required('O campo número é obrigatório'),
+        address_note: Yup.string(),
+        city: Yup.string().required('O campo cidade é obrigatório'),
+        state: Yup.string().required('O campo estado é obrigatório'),
+        zipcode: Yup.string().required('O campo CEP é obrigatório'),
+      });
+
+      await schema.validate(data, {
+        abortEarly: false,
+      });
+
+      /** submete os dados */
+      const {
+        name,
+        address,
+        address_number,
+        address_note,
+        city,
+        state,
+        zipcode,
+      } = data;
+
       await api.put(`recipients/${recipient.id}`, {
         name,
         address,
@@ -54,8 +63,17 @@ export default function UpdateRecipient({ location: { state: recipient } }) {
       /** volta para página anterior */
       history.goBack();
     } catch (err) {
-      /** mensagem de erro */
-      toast.error(`Ops! Ocorreu um problema. ${err}`);
+      const validationErrors = {};
+
+      if (err instanceof Yup.ValidationError) {
+        err.inner.forEach(error => {
+          validationErrors[error.path] = error.message;
+        });
+        formRef.current.setErrors(validationErrors);
+      } else {
+        /** mensagem de erro */
+        toast.error(`Ops! Ocorreu um problema. ${err}`);
+      }
     }
   }
 
@@ -83,7 +101,7 @@ export default function UpdateRecipient({ location: { state: recipient } }) {
         <Form
           initialData={recipient}
           id="form"
-          schema={schema}
+          ref={formRef}
           onSubmit={handleSubmit}
         >
           <label htmlFor="name">
