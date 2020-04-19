@@ -49,7 +49,7 @@ export default function DeliveryProblem() {
     /** confirmação e exclusão */
     if (window.confirm('Deseja realmente cancelar a encomenda?')) {
       try {
-        await api.delete(`problem/${id}/cancel_delivery`);
+        await api.delete(`problems/${id}/cancel_delivery`);
 
         /** mensagem de sucesso */
         toast.success('Encomenda cancelada com sucesso!');
