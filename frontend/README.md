@@ -27,3 +27,8 @@ Agora você poderá iniciar a aplicação:
 yarn start
 ```
 
+Por padrão, foi criado um usuário administrador para acessar a plataforma através do arquivo seed do backend:
+
+- **E-mail:** admin@fastfeet.com.br
+- **Senha:** 123456
+
