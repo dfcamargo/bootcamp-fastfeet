@@ -40,12 +40,12 @@ DB_NAME=
 MONGO_URL=
 
 # Redis - Acesso Redis
-REDIS_HOST=127.0.0.1
-REDIS_PORT=6379
+REDIS_HOST=
+REDIS_PORT=
 
 # Mail - Credenciais de e-mail
-MAIL_HOST=smtp.mailtrap.io
-MAIL_PORT=2525
+MAIL_HOST=
+MAIL_PORT=
 MAIL_USER=
 MAIL_PASS=
 
@@ -55,9 +55,21 @@ SENTRY_DSN=
 
 Agora com o Docker vamos criar nosso containers:
 
+- **Docker Compose**
+
 ```
-docker run --name postgres -e POSTGRES_PASSWORD="123@abc" -e POSTGRES_DB="fastfeet" -p 5432:5432 -d postgres:11
+docker-compose up
+```
+
+Ou
+
+- **Manualmente**
+
+```
+docker run --name postgres -e POSTGRES_PASSWORD=minhasenha -e POSTGRES_DB=nomebanco -p 5432:5432 -d postgres:11
+
 docker run --name mongo -p 27017:27017 -d mongo
+
 docker run --name redis -p 6379:6379 -d redis:alpine
 ```
 
@@ -65,27 +77,28 @@ Com o servidor criado executaremos nossas migrations para o Postgres montar a ba
 
 ```
 yarn sequelize db:migrate
+
 yarn sequelize db:seed:all
 ```
 
 Agora você poderá iniciar o servidor de aplicação:
 
+- **Servidor de aplicação**
+
 ```
-#Servidor de aplicação
 yarn dev
 ```
 
 Ou
 
+- **Servidor de aplicação em modo de depuração**
 ```
-#Servidor de aplicação em modo depuração
 yarn dev:debug
 ```
 
-E o servidor de gerenciamento de e-mails:
+- **Servidor de gerenciamento do envio de e-mails**
 
 ```
-#Servidor gerenciamento de envio de e-mails
 yarn queue
 ```
 

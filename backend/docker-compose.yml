@@ -1,0 +1,32 @@
+version: '3'
+
+services:
+  fastfeet-postgres:
+    image: postgres:11
+    container_name: fastfeet-postgres
+    ports:
+      - '5432:5432'
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=${DB_PASS}
+      - POSTGRES_DB=${DB_NAME}
+    volumes:
+      - fastfeet-postgres-data:/data
+  fastfeet-mongo:
+    image: mongo
+    container_name: fastfeet-mongo
+    ports:
+      - '27017:27017'
+    volumes:
+      - fastfeet-mongo-data:/data
+  fastfeet-redis:
+    image: redis:alpine
+    container_name: fastfeet-redis
+    ports:
+      - '6379:6379'
+    volumes:
+      - fastfeet-redis-data:/data
+volumes:
+  fastfeet-postgres-data:
+  fastfeet-mongo-data:
+  fastfeet-redis-data:
