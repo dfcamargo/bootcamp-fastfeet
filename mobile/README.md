@@ -12,7 +12,7 @@ Dentro dessa stack cada ferramenta tem sua responsabilidade:
 - **Unform:** Controle de formulário;
 - **React-Native-Camera:** Utilização da câmera do dispositivo para confirmação da entrega.
 
-A aplicação mobile foi testada e validada em emulador ANDROID utilizando a ferramenta [Android Studio](https://developer.android.com/studio/intro)
+A aplicação mobile foi testada e validada em emulador ANDROID utilizando a ferramenta [Android Studio](https://developer.android.com/studio/intro) - Pixel 2, Android 9.0.
 
 ## Rodando o Mobile
 
@@ -30,3 +30,5 @@ react-native run-android
 ```
 
 Para informações de instalação e configuração do [emulador ANDROID](https://reactnative.dev/docs/getting-started)
+
+O acesso é realizado através do ID do entregador cadastrado através da plataforma frontend
